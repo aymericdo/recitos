@@ -10,6 +10,7 @@
         end-angle="+270"
         line-cap="round"
         max="45"
+        min="1"
         v-bind:pathColor="sliderColor[0]"
         v-bind:rangeColor="sliderColor[1]"
         v-bind:tooltipColor="sliderColor[1]"

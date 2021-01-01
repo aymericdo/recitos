@@ -1,58 +1,104 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+  <div class="reyka">
+    <div class="col -big">
+      <textarea name="zone" v-model="value" v-on:keyup="valueChanged($event)"></textarea>
+    </div>
+    <div class="col" v-if="sliderColor">
+      <round-slider
+        v-model="tempo"
+        start-angle="315"
+        end-angle="+270"
+        line-cap="round"
+        max="45"
+        v-bind:pathColor="sliderColor[0]"
+        v-bind:rangeColor="sliderColor[1]"
+        v-bind:tooltipColor="sliderColor[1]"
+      />
+    </div>
   </div>
 </template>
 
 <script>
+import RoundSlider from 'vue-round-slider';
+import { addCapitalize } from '../service/capitalize.js';
+
 export default {
   name: 'HelloWorld',
-  props: {
-    msg: String
+  components: {
+    RoundSlider,
+  },
+  mounted: function() {
+    const sliderColors = [
+      ['#38ada9', '#fa983a'],
+      ['#8e44ad', '#f1c40f'],
+      ['#c8d6e5', '#2e86de'],
+    ];
+    const rand = Math.floor(Math.random() * Math.floor(sliderColors.length));
+    this.sliderColor = sliderColors[rand];
+  },
+  data: function () {
+    return {
+      value: '',
+      tempo: 5,
+      intervalId: null,
+      history: [],
+      onPause: false,
+      sliderColor: null,
+    }
+  },
+  methods: {
+    valueChanged(event) {
+      const value = event.target.value;
+
+      if (event.code === 'Space') {
+        this.value = addCapitalize(value, event)
+      }
+
+      if (this.history[this.history.length - 1] !== this.value) {
+        this.history.push(this.value);
+      }
+
+      const startInterval = (_interval) => {
+        clearInterval(this.intervalId);
+
+        // Store the id of the interval so we can clear it later
+        this.intervalId = setInterval(() => {
+          this.value = this.value.slice(0, -1);
+          startInterval(1000);
+        }, _interval);
+      }
+
+      if (!this.onPause) {
+        startInterval(this.tempo * 1000);
+      }
+    }
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
+  .reyka {
+    display: flex;
+    height: 100%;
+  }
+
+  textarea {
+    resize: none;
+    width: 100%;
+    height: 100%;
+    padding: 1rem;
+    box-sizing: border-box;
+    font-size: 16px;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+  }
+
+  .col {
+    flex: 1;
+    padding: 1em;
+  }
+
+  .col.-big {
+    flex: 9;
+  }
 </style>

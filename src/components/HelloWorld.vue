@@ -4,8 +4,9 @@
       <textarea name="zone" v-model="value" v-on:keyup="valueChanged($event)"></textarea>
     </div>
     <div class="col" v-if="sliderColor">
+      <div class="loading-bar" :style="{ 'background-color': sliderColor[1], width: (100 * countdown / waitingTime) + '%' }"></div>
       <round-slider
-        v-model="tempo"
+        v-model="waitingTime"
         :change="sliderChanged"
         start-angle="315"
         end-angle="+270"
@@ -24,6 +25,8 @@
 <script>
 import RoundSlider from 'vue-round-slider';
 import { addCapitalize } from '../service/capitalize.js';
+
+const INIT_WAITING_TIME = 5;
 
 export default {
   name: 'HelloWorld',
@@ -45,16 +48,17 @@ export default {
   data: function () {
     return {
       value: '',
-      tempo: 5,
-      intervalId: null,
+      waitingTime: INIT_WAITING_TIME,
+      countdownId: null,
       history: [],
       onPause: false,
       sliderColor: null,
+      countdown: INIT_WAITING_TIME,
     }
   },
   methods: {
     sliderChanged() {
-      clearInterval(this.intervalId);
+      clearInterval(this.countdownId);
       this.valueChanged({ target: { value: this.value } });
     },
     valueChanged(event) {
@@ -68,19 +72,17 @@ export default {
         this.history.push(this.value);
       }
 
-      const startInterval = (_interval) => {
-        clearInterval(this.intervalId);
-
-        // Store the id of the interval so we can clear it later
-        this.intervalId = setInterval(() => {
-          if (!this.onPause) {
+      this.countdown = this.waitingTime;
+      clearInterval(this.countdownId);
+      this.countdownId = setInterval(() => {
+        if (!this.onPause && this.value.length) {
+          if (this.countdown > 0) {
+            this.countdown -= 1;
+          } else {
             this.value = this.value.slice(0, -1);
-            startInterval(1000);
           }
-        }, _interval);
-      }
-
-      startInterval(this.tempo * 1000);
+        }
+      }, 1000);
     },
     pause() {
       this.onPause = !this.onPause;
@@ -104,6 +106,15 @@ export default {
     box-sizing: border-box;
     font-size: 16px;
     font-family: Georgia, 'Times New Roman', Times, serif;
+  }
+
+  .loading-bar {
+    height: 2rem;
+    background-color: red;
+    transition: width 1s linear;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    max-width: 100%;
   }
 
   .col {

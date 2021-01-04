@@ -1,9 +1,9 @@
 <template>
   <div class="reyka">
     <div class="col -big">
-      <textarea name="zone" v-model="value" v-on:keyup="valueChanged($event)"></textarea>
+      <textarea name="zone" v-model="value" @keyup="valueChanged($event)"></textarea>
     </div>
-    <div class="col" v-if="sliderColor">
+    <div class="col -option" v-if="sliderColor">
       <div class="loading-bar" :style="{ 'background-color': sliderColor[1], width: (100 * countdown / waitingTime) + '%' }"></div>
       <round-slider
         v-model="waitingTime"
@@ -17,7 +17,12 @@
         :rangeColor="sliderColor[1]"
         :tooltipColor="sliderColor[1]"
       />
-      <button v-on:click="pause()">{{ onPause ? 'Play' : 'Pause' }}</button>
+      <div class="pause-button" @click="pause()">
+        <transition name="fade">
+          <PlayButton class="svg" v-if="onPause" :color="sliderColor[1]" />
+          <PauseButton class="svg" v-else :color="sliderColor[0]" />
+        </transition>
+      </div>
     </div>
   </div>
 </template>
@@ -25,6 +30,8 @@
 <script>
 import RoundSlider from 'vue-round-slider';
 import { addCapitalize } from '../service/capitalize.js';
+import PlayButton from './svg/PlayButton.vue';
+import PauseButton from './svg/PauseButton.vue';
 
 const INIT_WAITING_TIME = 5;
 
@@ -32,6 +39,8 @@ export default {
   name: 'HelloWorld',
   components: {
     RoundSlider,
+    PlayButton,
+    PauseButton,
   },
   mounted: function() {
     const sliderColors = [
@@ -110,11 +119,22 @@ export default {
 
   .loading-bar {
     height: 2rem;
-    background-color: red;
     transition: width 1s linear;
-    margin-bottom: 1rem;
     border-radius: 4px;
     max-width: 100%;
+  }
+
+  .pause-button {
+    cursor: pointer;
+    width: 4rem;
+    align-self: center;
+    position: relative;
+  }
+
+  .pause-button .svg {
+    position: absolute;
+    top: 0;
+    left: 0;
   }
 
   .col {
@@ -122,7 +142,26 @@ export default {
     padding: 1em;
   }
 
+  .col.-option {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .col.-option > * {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+
   .col.-big {
     flex: 9;
+  }
+
+  .fade-enter-active, .fade-leave-active {
+    transition: opacity .5s;
+  }
+
+  .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+    opacity: 0;
   }
 </style>

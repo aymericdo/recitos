@@ -17,11 +17,15 @@
         :rangeColor="sliderColor[1]"
         :tooltipColor="sliderColor[1]"
       />
-      <div class="pause-button" @click="pause()">
+      <div class="pause-button" @click="togglePause()">
         <transition name="fade">
           <PlayButton class="svg" v-if="onPause" :color="sliderColor[1]" />
           <PauseButton class="svg" v-else :color="sliderColor[0]" />
         </transition>
+      </div>
+      <div class="cpt">
+        <span class="chars-cpt">{{value.length}} signe{{value.length > 1 ? 's' : '' }}</span>
+        <span class="words-cpt">{{value.split(' ').filter(Boolean).length}} mot{{value.split(' ').filter(Boolean).length > 1 ? 's' : '' }}</span>
       </div>
     </div>
   </div>
@@ -54,6 +58,16 @@ export default {
     const rand = Math.floor(Math.random() * Math.floor(sliderColors.length));
     this.sliderColor = sliderColors[rand];
   },
+  created: function() {
+    window.addEventListener('keydown', this.cmdPListener);
+    window.addEventListener('blur', this.onBlur);
+    window.addEventListener('beforeunload', this.beforeunload);
+  },
+  destroyed: function() {
+    window.removeEventListener('keydown', this.cmdPListener);
+    window.removeEventListener('blur', this.onBlur);
+    window.removeEventListener('beforeunload', this.beforeunload);
+  },
   data: function () {
     return {
       value: '',
@@ -66,11 +80,30 @@ export default {
     }
   },
   methods: {
+    onBlur() {
+      if (this.value.length) {
+        this.pause();
+      }
+    },
+    beforeunload(event) {
+      const confirmationMessage = 'Certain·e ?';
+      (event || window.event).returnValue = confirmationMessage;
+      return confirmationMessage;
+    },
+    cmdPListener(event) {
+      if (event.metaKey && event.code === "KeyP") {
+        this.togglePause();
+        event.preventDefault();
+        return false;
+      }
+    },
     sliderChanged() {
       clearInterval(this.countdownId);
       this.valueChanged({ target: { value: this.value } });
     },
     valueChanged(event) {
+      if (event.code === 'MetaLeft') return;
+
       const value = event.target.value;
 
       if (event.code === 'Space') {
@@ -93,8 +126,11 @@ export default {
         }
       }, 1000);
     },
-    pause() {
+    togglePause() {
       this.onPause = !this.onPause;
+    },
+    pause() {
+      this.onPause = true;
     }
   }
 }
@@ -127,6 +163,7 @@ export default {
   .pause-button {
     cursor: pointer;
     width: 4rem;
+    height: 4rem;
     align-self: center;
     position: relative;
   }
@@ -140,6 +177,11 @@ export default {
   .col {
     flex: 1;
     padding: 1em;
+  }
+
+  .cpt {
+    display: flex;
+    flex-direction: column;
   }
 
   .col.-option {

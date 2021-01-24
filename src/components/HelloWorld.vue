@@ -37,7 +37,7 @@ import { addCapitalize } from '../service/capitalize.js';
 import PlayButton from './svg/PlayButton.vue';
 import PauseButton from './svg/PauseButton.vue';
 
-const INIT_WAITING_TIME = 5;
+const INIT_WAITING_TIME = 15;
 
 export default {
   name: 'HelloWorld',

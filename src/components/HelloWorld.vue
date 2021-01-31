@@ -1,10 +1,16 @@
 <template>
-  <div class="reyka">
+  <div v-if="sliderColor" class="reyka">
     <div class="col -big">
-      <textarea name="zone" v-model="value" @keyup="valueChanged($event)"></textarea>
+      <textarea
+        name="zone"
+        :style="textareaStyles"
+        v-model="value"
+        @focus="textareaFocused = true"
+        @blur="textareaFocused = false"
+        @keyup="valueChanged($event)"></textarea>
     </div>
-    <div class="col -option" v-if="sliderColor">
-      <div class="loading-bar" :style="{ 'background-color': sliderColor[1], width: (100 * countdown / waitingTime) + '%' }"></div>
+    <div class="col -option">
+      <div class="loading-bar" :style="loadingBarStyles"></div>
       <round-slider
         v-model="waitingTime"
         :change="sliderChanged"
@@ -77,6 +83,22 @@ export default {
       onPause: false,
       sliderColor: null,
       countdown: INIT_WAITING_TIME,
+      textareaFocused: false,
+    }
+  },
+  computed: {
+    textareaStyles() {
+      if (!this.textareaFocused) return {}
+      return {
+        "box-shadow": `0 0 10px ${this.sliderColor[1]}`,
+        border: `2px solid ${this.sliderColor[0]}`
+      };
+    },
+    loadingBarStyles() {
+      return {
+        'background-color': this.sliderColor[1],
+        width: (100 * this.countdown / this.waitingTime) + '%',
+      };
     }
   },
   methods: {
@@ -151,6 +173,10 @@ export default {
     box-sizing: border-box;
     font-size: 16px;
     font-family: Georgia, 'Times New Roman', Times, serif;
+  }
+
+  textarea:focus {
+    outline: none !important;
   }
 
   .loading-bar {
